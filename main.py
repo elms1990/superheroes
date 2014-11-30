@@ -9,11 +9,12 @@ if __name__ == '__main__':
 	villains_team = [int(x) for x in entry.split(' ')]
 	
 	v = VillainTeam(villains_team)
-	h = HeroTeam([4,5,6,23,21,2,78,70,54])
+	h = HeroTeam([4,5,21,2,78,70,54,261])
 
 	print h.beatsTeam(v)
 	print v.calculateBudget()
-	print v
+	print v.getCost(), h.getCost()
+	print h.getCollaboration(oppositeTeam=v)
 	
 
 
