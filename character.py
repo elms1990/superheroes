@@ -46,8 +46,8 @@ class Team():
     def __init__(self, memberIds, dic):
         self.members = [dic[x] for x in memberIds]
 
-    def __str__(self):
-        return ', '.join([x.name for x in self.members])
+    def __repr__(self):
+        return ', '.join(['%s (%s)' % (x.name, x.id) for x in self.members])
 
     def __iter__(self):
         return iter(self.members)
@@ -72,10 +72,13 @@ class Team():
     def getCost(self):
         return sum([x.getCost() for x in self.members])
 
-    def getCollaboration(self,oppositeTeam=[]):
+    def getCollaboration(self,oppositeTeam=[], pprint=False):
         #collaboration among team + collaboration with opposite team ## EH ISSO MESMO QUE O PROF PASSOU?
-        return sum([x.sharedComicsWithCharacter(y) for x,y in combinations(self,2)]) + \
-               sum([x.sharedComicsWithCharacter(y) for x,y in product(self, oppositeTeam)])
+        collab = sum([x.sharedComicsWithCharacter(y) for x,y in combinations(self,2)]) 
+        fighting = sum([x.sharedComicsWithCharacter(y) for x,y in product(self, oppositeTeam)])
+        if pprint:
+            print collab, fighting
+        return collab + fighting
 
 class HeroTeam(Team):
     def __init__(self, memberIds):
