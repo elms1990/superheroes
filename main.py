@@ -1,11 +1,5 @@
 from character import heroes, villains, shared_comics, VillainTeam, HeroTeam
-
-from pyevolve import G1DList
-from pyevolve import GSimpleGA
-from pyevolve import Selectors
-from pyevolve import Statistics
-from pyevolve import Mutators
-from pyevolve import Initializators
+from random import randint
 
 BUDGET=0
 PENALTY_BUDGET = 1000
@@ -20,14 +14,13 @@ def convertChromosomeToHeroTeam(chromosome):
     #heroIds = [heroes.keys()[idx] for idx in [i for i in xrange(len(chromosome)) if chromosome[i]==1]]
     heroIds = list(set([heroes.keys()[idx] for idx in chromosome]))
     return HeroTeam(heroIds)
+
+
 # This function is the evaluation function, we want
 # to give high score to more zero'ed chromosomes
-def eval_func(chromosome):
-
-    team = convertChromosomeToHeroTeam(chromosome)
+def fitness(team):
 
     score = team.getCollaboration(oppositeTeam=villain_team) * REWARD_COLLABORATION
-
     # if team.getCost() > BUDGET:
     #     score -= (team.getCost() - BUDGET) * PENALTY_BUDGET
     # if team.size() > villain_team.size():
@@ -40,6 +33,17 @@ def eval_func(chromosome):
 
     return max(0,score)
 
+
+#def crossover(team1, team2):
+
+
+def createInitialPopulation(size=100, teamsize=10):
+    pop = []
+    for i in xrange(size):
+        teamIds = [heroes.keys()[randint(0, len(heroes)-1)] for j in xrange(teamsize)]
+        pop.append(HeroTeam(teamIds))
+    return pop
+
 if __name__ == '__main__':
     ## trocar pra ler da entrada
     entryFile = 'V4_763.txt'
@@ -51,36 +55,23 @@ if __name__ == '__main__':
 
     BUDGET = villain_team.calculateBudget()
 
-    # Genome instance
-    genome = G1DList.G1DList(villain_team.size())
+    NGEN = 200
+    POPSIZE = 200
 
-    genome.setParams(rangemin=0, rangemax=len(heroes.keys())-1)
+
+
     
-    # The evaluator function (objective function)
-    genome.evaluator.set(eval_func)
-        # Genetic Algorithm Instance
-    ga = GSimpleGA.GSimpleGA(genome)
-    #ga.initialize(Initializators.G1DListInitializatorInteger)
+
+    population = createInitialPopulation(size=POPSIZE, teamsize=villain_team.size())
+
+    for i in xrange(NGEN):
+        fits = map(fitness, population)
 
 
-    # Set the Roulette Wheel selector method, the number of generations and
-    # the termination criteria
-    print dir(Selectors)
-    print dir(ga)
-    ga.selector.set(Selectors.GRouletteWheel)
-    ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
 
-    ga.setPopulationSize(2000)
-    ga.setGenerations(2000)
-    ga.setMutationRate(0.02)
-    ga.setCrossoverRate(0.9)
-
-    # Do the evolution, with stats dump
-    # frequency of 10 generations
-    ga.evolve(freq_stats=100)
 
     # Best individual
-    bestTeam = convertChromosomeToHeroTeam(ga.bestIndividual())  
+    #bestTeam = convertChromosomeToHeroTeam(ga.bestIndividual())  
 
 
     print bestTeam.size(), villain_team.size()

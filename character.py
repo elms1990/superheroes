@@ -5,7 +5,7 @@ villains = {}
 shared_comics = {}
 budget = 0
 
-class Character():
+class Character(object):
     def __init__(self, array):
         self.id = int(array[0])
         self.name = array[1]
@@ -42,12 +42,12 @@ class Character():
         return shared_comics[k] if k in shared_comics else 0
 
 
-class Team():
+class Team(object):
     def __init__(self, memberIds, dic):
         self.members = [dic[x] for x in memberIds]
 
     def __repr__(self):
-        return ', '.join(['%s (%s)' % (x.name, x.id) for x in self.members])
+        return '<team: %s>' % ', '.join(['%s (%s)' % (x.name, x.id) for x in self.members])
 
     def __iter__(self):
         return iter(self.members)
