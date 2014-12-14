@@ -5,7 +5,7 @@ villains = {}
 shared_comics = {}
 budget = 0
 
-class Character():
+class Character(object):
     def __init__(self, array):
         self.id = int(array[0])
         self.name = array[1]
@@ -21,61 +21,84 @@ class Character():
         self.energy = int(array[7])
         self.fighting = int(array[8])
         self.numComics = int(array[9])
-    
+
+        self.powerGrid = [self.intelligence, self.strength, self.speed, self.durability, self.energy, self.fighting]
+        self.avgPowerGrid = sum(self.powerGrid)/len(self.powerGrid)
+        self.cost = self.avgPowerGrid * self.numComics
+
     def __str__(self):
         return str({'id': self.id, 'name': self.name, 'hero': self.hero, 'intelligence': self.intelligence,
                 'strength': self.strength, 'speed': self.speed, 'durability': self.durability, 
                 'energy':self.energy, 'fighting': self.fighting, 'numComics': self.numComics})
 
     def getPowerGrid(self):
-        return [self.intelligence, self.strength, self.speed, self.durability, self.energy, self.fighting]
-
-    def getCost(self):
-        return self.averagePowerGrid() * self.numComics
+        return self.powerGrid
 
     def averagePowerGrid(self):
-        pg = self.getPowerGrid()
-        return sum(pg)/len(pg)
+        return self.avgPowerGrid
+
+    def getCost(self):
+        return self.cost
 
     def sharedComicsWithCharacter(self, c):
         k = (min(self.id,c.id),max(self.id,c.id))
         return shared_comics[k] if k in shared_comics else 0
 
 
-class Team():
+class Team(object):
     def __init__(self, memberIds, dic):
         self.members = [dic[x] for x in memberIds]
 
-    def __str__(self):
-        return ', '.join([x.name for x in self.members])
+        g = [x.averagePowerGrid() for x in self]
+        self.avgPG = 1.0* sum(g)/len(g)
+        self.powerGrid = [1.0* sum(attr)/len(attr) for attr in zip(*[m.getPowerGrid() for m in self])]
+        self.sizeOfTeam = len(self.members)
+
+        p = [x.numComics for x in self.members]
+        self.avgPopularity = 1.0* sum(p)/len(p)
+
+        self.cost = sum([x.getCost() for x in self.members])
+
+        self.collab_dict = {}
+
+
+    def __repr__(self):
+        return '<team: %s>' % ', '.join(['%s (%s)' % (x.name, x.id) for x in self.members])
 
     def __iter__(self):
         return iter(self.members)
 
     def size(self):
-        return len(self.members)
+        return self.sizeOfTeam
 
     def averagePowerGrid(self):
-        g = [x.averagePowerGrid() for x in self]
-        return 1.0* sum(g)/len(g)
+        return self.avgPG
 
     def getPowerGrid(self):
-       return [1.0* sum(attr)/len(attr) for attr in zip(*[m.getPowerGrid() for m in self])]
+       return self.powerGrid
 
     def averagePopularity(self):
-        p = [x.numComics for x in self.members]
-        return 1.0* sum(p)/len(p)
+        return self.avgPopularity
 
     def beatsTeam(self, team):
         return all([a >= b for a,b in zip(self.getPowerGrid(),team.getPowerGrid())])
 
     def getCost(self):
-        return sum([x.getCost() for x in self.members])
+        return self.cost
 
-    def getCollaboration(self,oppositeTeam=[]):
+    def getCollaboration(self,oppositeTeam=[], pprint=False):
         #collaboration among team + collaboration with opposite team ## EH ISSO MESMO QUE O PROF PASSOU?
-        return sum([x.sharedComicsWithCharacter(y) for x,y in combinations(self,2)]) + \
-               sum([x.sharedComicsWithCharacter(y) for x,y in product(self, oppositeTeam)])
+        if oppositeTeam not in self.collab_dict:
+            collab = sum([x.sharedComicsWithCharacter(y) for x,y in combinations(self,2)]) 
+            fighting = sum([x.sharedComicsWithCharacter(y) for x,y in product(self, oppositeTeam)])
+            self.collab_dict[oppositeTeam] = [collab, fighting]
+        else:
+            collab, fighting = self.collab_dict[oppositeTeam]
+        
+        if pprint:
+            return "%s (Team:%s Fight:%s)" % (collab+fighting, collab, fighting)
+        else:
+            return collab + fighting
 
 class HeroTeam(Team):
     def __init__(self, memberIds):
