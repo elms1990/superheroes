@@ -96,8 +96,9 @@ class Team(object):
             collab, fighting = self.collab_dict[oppositeTeam]
         
         if pprint:
-            print collab, fighting
-        return collab + fighting
+            return "%s (Team:%s Fight:%s)" % (collab+fighting, collab, fighting)
+        else:
+            return collab + fighting
 
 class HeroTeam(Team):
     def __init__(self, memberIds):
