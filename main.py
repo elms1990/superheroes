@@ -27,17 +27,12 @@ def convertChromosomeToHeroTeam(chromosome):
 # This function is the evaluation function, we want
 def fitness(chsTeam):
     team = convertChromosomeToHeroTeam(chsTeam)
-
-    score = team.getCollaboration(oppositeTeam=villain_team)    
+    score = team.getCollaboration(oppositeTeam=villain_team) 
 
     numBeats = team.numBeats(villain_team)
     score += 1000 * numBeats
-
-    if numBeats < 6:
-        score *= 0.9
-
-    cost = max(0, team.getCost() - BUDGET)
-    if cost == 0:
+    
+    if team.getCost() <= BUDGET :
         score *= 10
 
     return  max(0,score),
@@ -85,7 +80,7 @@ if __name__ == '__main__':
     BUDGET = villain_team.calculateBudget()
     IND_SIZE = villain_team.size()
 
-    CXPB, MUTPB, NGEN, NPOP = 0.7, 0.2, 1000, 500
+    CXPB, MUTPB, NGEN, NPOP = 0.7, 0.2, 1000, 800
 
 
     #creator.create("FitnessMax", base.Fitness, weights=(-1.0, 1.0))
