@@ -1,7 +1,7 @@
 from character import heroes, villains, shared_comics, VillainTeam, HeroTeam
 from random import randint
 
-
+import multiprocessing
 import array
 import random
 import json
@@ -18,7 +18,6 @@ from deap import tools
 cache_teams = {}
 
 def convertChromosomeToHeroTeam(chromosome):
-    #heroIds = tuple(set([heroes.keys()[idx] for idx in chromosome[:villain_team.size()]]))
     heroIds = tuple(set(chromosome))
     if heroIds not in cache_teams:
         cache_teams[heroIds] = HeroTeam(heroIds)
@@ -46,15 +45,14 @@ def cxTeam(ind1, ind2):
         cxpoint1 = random.randint(0, size - 1)
         cxpoint2 = random.randint(0, size - 1)
         ind1[cxpoint1], ind2[cxpoint1] = ind2[cxpoint2], ind1[cxpoint2]
-
     return ind1, ind2
+
 
 def mutTeam(ind):
     size = len(ind)
     for i in xrange(size):
-        if random.random() < 1.0 / size:
-            #ind[i] = random.randint(0, len(heroes)-1)
-            ind[i] = random.choice(heroes.keys())
+       if random.random() < 1.0 / size:
+           ind[i] = random.choice(heroes.keys())
     return ind,
 
 def selectTeams(individuals, k):
@@ -73,7 +71,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         entryFile = sys.argv[1]
     else:
-        entryFile = 'Villan Teams/V18_763.txt'
+        entryFile = 'Villan Teams/V18_423.txt'
     
     with open(entryFile, 'r') as f:
         villains_team_ids= [int(x) for x in f.read().split(' ')]
@@ -89,7 +87,6 @@ if __name__ == '__main__':
 
     toolbox = base.Toolbox()
     toolbox.register("indices", random.sample, heroes.keys(), IND_SIZE)
-    #toolbox.register("indices", random.sample, range(len(heroes)), IND_SIZE)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.indices)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
@@ -116,13 +113,15 @@ if __name__ == '__main__':
     best_collab = 0
     best_ever = convertChromosomeToHeroTeam(hof[0])
     best_not_change = 0
+
+    pool = multiprocessing.Pool(IND_SIZE)
     # Begin the evolution
     for g in range(NGEN):
         
         # Select the next generation individuals
         offspring = toolbox.select(pop, len(pop))
         # Clone the selected individuals
-        offspring = list(map(toolbox.clone, offspring))
+        offspring = list(pool.map(toolbox.clone, offspring))
     
         # Apply crossover and mutation on the offspring
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
@@ -134,11 +133,11 @@ if __name__ == '__main__':
         for mutant in offspring:
             if random.random() < MUTPB:
                 toolbox.mutate(mutant)
-                del mutant.fitness.values
+                del mutant.fitness.values           
     
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        fitnesses = map(toolbox.evaluate, invalid_ind)
+        fitnesses = pool.map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
         
@@ -148,8 +147,7 @@ if __name__ == '__main__':
         pop[:] = offspring
         
         # Gather all the fitnesses in one list and print the stats
-        fits = [ind.fitness.values[0] for ind in pop]
-        
+        fits = [ind.fitness.values[0] for ind in pop]        
         
         hof.update(pop)
         best_ind = hof[0]#tools.selBest(pop, 1)[0]       
@@ -167,8 +165,6 @@ if __name__ == '__main__':
 
         if best_not_change > MAXGENNOCHANGE:
             break
-
-
 
         if g%10 == 0:
             print "-- Generation %i (%s)--  MAX:%i" % (g, len(pop), collab) 
