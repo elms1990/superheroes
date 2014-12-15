@@ -1,14 +1,9 @@
 from character import heroes, villains, shared_comics, VillainTeam, HeroTeam
-from random import randint
 
 import multiprocessing
 import array
 import random
-import json
 import sys
-
-import numpy
-
 from deap import algorithms
 from deap import base
 from deap import creator
@@ -71,7 +66,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         entryFile = sys.argv[1]
     else:
-        entryFile = 'Villan Teams/V18_423.txt'
+        entryFile = 'Villan Teams/V12_763.txt'
     
     with open(entryFile, 'r') as f:
         villains_team_ids= [int(x) for x in f.read().split(' ')]
@@ -100,10 +95,12 @@ if __name__ == '__main__':
 
     hof = tools.HallOfFame(2)
     
+    pool = multiprocessing.Pool(IND_SIZE)
+
     print("Start of evolution")
     
     # Evaluate the entire population
-    fitnesses = list(map(toolbox.evaluate, pop))
+    fitnesses = list(pool.map(toolbox.evaluate, pop))
     for ind, fit in zip(pop, fitnesses):
         ind.fitness.values = fit
     
@@ -114,7 +111,6 @@ if __name__ == '__main__':
     best_ever = convertChromosomeToHeroTeam(hof[0])
     best_not_change = 0
 
-    pool = multiprocessing.Pool(IND_SIZE)
     # Begin the evolution
     for g in range(NGEN):
         
