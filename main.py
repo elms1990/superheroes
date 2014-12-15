@@ -48,10 +48,21 @@ def cxTeam(ind1, ind2):
     size = min(len(ind1), len(ind2))
     numSwitches = random.randint(1, size-1)
     for i in xrange(numSwitches):
-        cxpoint = random.randint(1, size - 1)
-        ind1[cxpoint], ind2[cxpoint] = ind2[cxpoint], ind1[cxpoint]
+        cxpoint1 = random.randint(0, size - 1)
+        cxpoint2 = random.randint(0, size - 1)
+        ind1[cxpoint1], ind2[cxpoint1] = ind2[cxpoint2], ind1[cxpoint2]
 
     return ind1, ind2
+
+def mutTeam(ind):
+    for i in xrange(len(ind)):
+        if random.random() < 1.0/IND_SIZE:
+            ind[i] = random.randint(0, len(heroes)-1)    
+    return ind,
+
+def selectTeams(individuals, k):
+    return  tools.selTournament(individuals, int(0.95*len(individuals)), 4) + \
+            tools.selWorst(individuals, int(0.05*len(individuals)))
 
 def printBestTeamStats(bestTeam):
     print 'Team Size:', bestTeam.size(), ' Villain Team Size:', villain_team.size()
@@ -65,7 +76,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         entryFile = sys.argv[1]
     else:
-        entryFile = 'Villan Teams/V14_423.txt'
+        entryFile = 'Villan Teams/V18_423.txt'
     
     with open(entryFile, 'r') as f:
         villains_team_ids= [int(x) for x in f.read().split(' ')]
@@ -73,6 +84,9 @@ if __name__ == '__main__':
     villain_team = VillainTeam(villains_team_ids)
     BUDGET = villain_team.calculateBudget()
     IND_SIZE = villain_team.size()
+
+    CXPB, MUTPB, NGEN, NPOP = 0.7, 0.2, 1000, 500
+
 
     #creator.create("FitnessMax", base.Fitness, weights=(-1.0, 1.0))
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -84,24 +98,22 @@ if __name__ == '__main__':
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
     toolbox.register("mate", cxTeam)
-    #toolbox.register("mate", tools.cxOnePoint)
-    toolbox.register("mutate", tools.mutUniformInt, indpb=0.1, low=0, up=len(heroes)-1)
+    toolbox.register("mutate", mutTeam)
+    #toolbox.register("select", selectTeams)
     toolbox.register("select", tools.selTournament, tournsize=4)
     toolbox.register("evaluate", fitness)
 
 
-    CXPB, MUTPB, NGEN, NPOP = 0.8, 0.4, 1000, 500
-
     pop = toolbox.population(n=NPOP)
 
     hof = tools.HallOfFame(2)
-    #stats = tools.Statistics(lambda ind: ind.fitness.values)
-    #stats.register("avg", numpy.mean)
-    #stats.register("std", numpy.std)
-    #stats.register("min", numpy.min)
-    #stats.register("max", numpy.max)
+    # stats = tools.Statistics(lambda ind: ind.fitness.values)
+    # stats.register("avg", numpy.mean)
+    # stats.register("std", numpy.std)
+    # stats.register("min", numpy.min)
+    # stats.register("max", numpy.max)
     
-    #algorithms.eaSimple(pop, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=NGEN, stats=stats, 
+    # algorithms.eaSimple(pop, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=NGEN, stats=stats, 
     #                halloffame=hof)
 
     # print fitness(hof[0])
