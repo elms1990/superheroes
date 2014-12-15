@@ -18,8 +18,7 @@ from deap import tools
 cache_teams = {}
 
 def convertChromosomeToHeroTeam(chromosome):
-    #heroIds = [heroes.keys()[idx] for idx in [i for i in xrange(len(chromosome)) if chromosome[i]==1]]
-    heroIds = tuple(set([heroes.keys()[idx] for idx in chromosome[:villain_team.size()]]))
+    heroIds = tuple(set(sorted(chromosome)))
     if heroIds not in cache_teams:
         cache_teams[heroIds] = HeroTeam(heroIds)
     return cache_teams[heroIds]
@@ -57,7 +56,7 @@ def cxTeam(ind1, ind2):
 def mutTeam(ind):
     for i in xrange(len(ind)):
         if random.random() < 1.0/IND_SIZE:
-            ind[i] = random.randint(0, len(heroes)-1)    
+            ind[i] = random.choice(heroes.keys())
     return ind,
 
 def selectTeams(individuals, k):
@@ -76,7 +75,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         entryFile = sys.argv[1]
     else:
-        entryFile = 'Villan Teams/V18_423.txt'
+        entryFile = 'Villan Teams/V18_763.txt'
     
     with open(entryFile, 'r') as f:
         villains_team_ids= [int(x) for x in f.read().split(' ')]
@@ -93,7 +92,7 @@ if __name__ == '__main__':
     creator.create("Individual", array.array, typecode='i', fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
-    toolbox.register("indices", random.sample, range(len(heroes)), IND_SIZE)
+    toolbox.register("indices", random.sample, heroes.keys(), IND_SIZE)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.indices)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
@@ -132,9 +131,10 @@ if __name__ == '__main__':
         ind.fitness.values = fit
     
     print("  Evaluated %i individuals" % len(pop))
+    hof.update(pop)
     
     best_collab = 0
-    best_ever = None
+    best_ever = convertChromosomeToHeroTeam(hof[0])
     best_not_change = 0
     # Begin the evolution
     for g in range(NGEN):
