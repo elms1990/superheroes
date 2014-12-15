@@ -31,7 +31,7 @@ def fitness(chsTeam):
 
     score = team.getCollaboration(oppositeTeam=villain_team)    
 
-    numBeats = sum([a>=b for a,b in zip(team.getPowerGrid(), villain_team.getPowerGrid())])
+    numBeats = team.numBeats(villain_team)
     score += 1000 * numBeats
 
     if numBeats < 6:

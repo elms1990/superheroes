@@ -60,6 +60,7 @@ class Team(object):
         self.cost = sum([x.getCost() for x in self.members])
 
         self.collab_dict = {}
+        self.numBeats_dict = {}
 
 
     def __repr__(self):
@@ -82,6 +83,11 @@ class Team(object):
 
     def beatsTeam(self, team):
         return all([a >= b for a,b in zip(self.getPowerGrid(),team.getPowerGrid())])
+
+    def numBeats(self, team):
+        if team not in self.numBeats_dict:
+            self.numBeats_dict[team] = sum([a>=b for a,b in zip(self.getPowerGrid(), team.getPowerGrid())])
+        return self.numBeats_dict[team]
 
     def getCost(self):
         return self.cost
