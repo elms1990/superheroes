@@ -18,7 +18,8 @@ from deap import tools
 cache_teams = {}
 
 def convertChromosomeToHeroTeam(chromosome):
-    heroIds = tuple(set(sorted(chromosome)))
+    #heroIds = tuple(set([heroes.keys()[idx] for idx in chromosome[:villain_team.size()]]))
+    heroIds = tuple(set(chromosome))
     if heroIds not in cache_teams:
         cache_teams[heroIds] = HeroTeam(heroIds)
     return cache_teams[heroIds]
@@ -52,6 +53,7 @@ def mutTeam(ind):
     size = len(ind)
     for i in xrange(size):
         if random.random() < 1.0 / size:
+            #ind[i] = random.randint(0, len(heroes)-1)
             ind[i] = random.choice(heroes.keys())
     return ind,
 
@@ -80,15 +82,14 @@ if __name__ == '__main__':
     BUDGET = villain_team.calculateBudget()
     IND_SIZE = villain_team.size()
 
-    CXPB, MUTPB, NGEN, NPOP = 0.7, 0.2, 1000, 800
+    CXPB, MUTPB, NGEN, NPOP, MAXGENNOCHANGE = 0.7, 0.2, 1000, 500, 100
 
-
-    #creator.create("FitnessMax", base.Fitness, weights=(-1.0, 1.0))
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", array.array, typecode='i', fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
     toolbox.register("indices", random.sample, heroes.keys(), IND_SIZE)
+    #toolbox.register("indices", random.sample, range(len(heroes)), IND_SIZE)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.indices)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
@@ -98,26 +99,9 @@ if __name__ == '__main__':
     toolbox.register("select", tools.selTournament, tournsize=4)
     toolbox.register("evaluate", fitness)
 
-
     pop = toolbox.population(n=NPOP)
 
     hof = tools.HallOfFame(2)
-    # stats = tools.Statistics(lambda ind: ind.fitness.values)
-    # stats.register("avg", numpy.mean)
-    # stats.register("std", numpy.std)
-    # stats.register("min", numpy.min)
-    # stats.register("max", numpy.max)
-    
-    # algorithms.eaSimple(pop, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=NGEN, stats=stats, 
-    #                halloffame=hof)
-
-    # print fitness(hof[0])
-    # bestTeam = convertChromosomeToHeroTeam(hof[0])
-    # printBestTeamStats(bestTeam)
-
-    # bestTeam = convertChromosomeToHeroTeam(hof[1])
-    # printBestTeamStats(bestTeam)
-    # exit()
     
     print("Start of evolution")
     
@@ -181,7 +165,7 @@ if __name__ == '__main__':
         else:
             best_not_change +=1
 
-        if best_not_change > 100:
+        if best_not_change > MAXGENNOCHANGE:
             break
 
 
