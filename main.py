@@ -54,13 +54,14 @@ def cxTeam(ind1, ind2):
     return ind1, ind2
 
 def mutTeam(ind):
-    for i in xrange(len(ind)):
-        if random.random() < 1.0/IND_SIZE:
+    size = len(ind)
+    for i in xrange(size):
+        if random.random() < 1.0 / size:
             ind[i] = random.choice(heroes.keys())
     return ind,
 
 def selectTeams(individuals, k):
-    return  tools.selTournament(individuals, int(0.95*len(individuals)), 4) + \
+    return  tools.selTournament(individuals, int(0.95*len(individuals)), tournsize=4) + \
             tools.selWorst(individuals, int(0.05*len(individuals)))
 
 def printBestTeamStats(bestTeam):
