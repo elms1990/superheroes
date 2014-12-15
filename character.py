@@ -47,7 +47,7 @@ class Character(object):
 
 class Team(object):
     def __init__(self, memberIds, dic):
-        self.members = [dic[x] for x in memberIds]
+        self.members = [dic[x] for x in set(memberIds)]
 
         g = [x.averagePowerGrid() for x in self]
         self.avgPG = 1.0* sum(g)/len(g)
